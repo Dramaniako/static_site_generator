@@ -24,6 +24,48 @@ def extract_markdown_images(text: str) -> list[tuple]:
     markdown_images = re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
     return markdown_images
 
+def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_nodes: list[TextNode] = []
+    
+    for node in old_nodes:
+        extract_markdown = extract_markdown_images(node.text)
+        if len(extract_markdown) == 0:
+            new_nodes.append(node)
+            continue
+        remaining = node.text
+        for image in extract_markdown:
+            split_node = remaining.split(f"![{image[0]}]({image[1]})", maxsplit=1)
+            if split_node[0] != "":
+                new_nodes.append(TextNode(split_node[0], TextType.TEXT))
+            new_nodes.append(TextNode(image[0], TextType.IMAGE, image[1]))
+                    
+            remaining = split_node[1]
+        if remaining != "":
+            new_nodes.append(TextNode(remaining, TextType.TEXT))
+    
+    return new_nodes
+
 def extract_markdown_links(text: str) -> list[tuple]:
     markdown_links = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)*", text)
     return markdown_links
+
+def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_nodes: list[TextNode] = []
+    
+    for node in old_nodes:
+        extract_markdown = extract_markdown_links(node.text)
+        if len(extract_markdown) == 0:
+            new_nodes.append(node)
+            continue
+        remaining = node.text
+        for link in extract_markdown:
+            split_node = remaining.split(f"[{link[0]}]({link[1]})", maxsplit=1)
+            if split_node[0] != "":
+                new_nodes.append(TextNode(split_node[0], TextType.TEXT))
+            new_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
+                    
+            remaining = split_node[1]
+        if remaining != "":
+            new_nodes.append(TextNode(remaining, TextType.TEXT))
+    
+    return new_nodes
