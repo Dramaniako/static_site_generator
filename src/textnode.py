@@ -9,7 +9,6 @@ class TextType(Enum):
     LINK = "link"
     IMAGE = "image"
     
-    
 class TextNode():
     def __init__(self, text: str, text_type: TextType, url:str | None = None) -> None:
         super().__init__()
@@ -38,4 +37,3 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
         return LeafNode("img", "", {"src": f"{text_node.url}", "alt": f"{text_node.text}"})
     else:
         raise ValueError("Error: TextNode must have the required arguments")
-    
