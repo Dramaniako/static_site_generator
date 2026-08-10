@@ -1,6 +1,9 @@
 import os
 import shutil
+import re
 from textnode import TextNode, TextType
+from markdown_to_blocks import markdown_to_html_node
+from extract_title import extract_title
 
 def copy_content(src: str, dst: str):
     if not os.path.exists(src):
@@ -30,10 +33,29 @@ def copy_content(src: str, dst: str):
             new_destination = os.path.join(dst, item)
             os.mkdir(new_destination)
             copy_content(item_path, new_destination)
+            
+def generate_page(from_path:str, template_path:str, dest_path:str):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    
+    with open(from_path, "r") as markdown_file, open(template_path, "r") as template_file:
+        markdown = markdown_file.read()
+        template = template_file.read()
+        html_string = markdown_to_html_node(markdown).to_html()
+        title = extract_title(markdown)
+        template = re.sub(r"(\{\{ Title \}\})", title, template)
+        template = re.sub(r"(\{\{ Content \}\})", html_string, template)
+        markdown_file.close()
+        template_file.close()
+    
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 
+    with open(dest_path, "w") as destination_file:
+        destination_file.write(template)
 
 def main():
     copy_content("./static", "./public")
+    generate_page("./content/index.md", "./template.html", "./public/index.html")
+    
 
 
 main()
