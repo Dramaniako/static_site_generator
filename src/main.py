@@ -1,6 +1,7 @@
 import os
 import shutil
 import re
+import sys
 from textnode import TextNode, TextType
 from markdown_to_blocks import markdown_to_html_node
 from extract_title import extract_title
@@ -34,7 +35,7 @@ def copy_content(src: str, dst: str):
             os.mkdir(new_destination)
             copy_content(item_path, new_destination)
             
-def generate_page(from_path:str, template_path:str, dest_path:str):
+def generate_page(from_path:str, template_path:str, dest_path:str, basepath:str):
     file_path = dest_path.replace("md", "html")
     print(f"Generating page from {from_path} to {file_path} using {template_path}")
     
@@ -45,6 +46,8 @@ def generate_page(from_path:str, template_path:str, dest_path:str):
         title = extract_title(markdown)
         template = re.sub(r"(\{\{ Title \}\})", title, template)
         template = re.sub(r"(\{\{ Content \}\})", html_string, template)
+        template = re.sub(r'href="/', f'href="{basepath}', template)
+        template = re.sub(r'src="/', f'src="{basepath}', template)
         markdown_file.close()
         template_file.close()
     
@@ -53,20 +56,21 @@ def generate_page(from_path:str, template_path:str, dest_path:str):
     with open(file_path, "w") as destination_file:
         destination_file.write(template)
 
-def generate_pages(from_path:str, template_path:str, dest_path:str):
+def generate_pages(from_path:str, template_path:str, dest_path:str, basepath:str):
     contents = os.listdir(from_path)
     for content in contents:
         content_path = os.path.join(from_path, content)
         public_path = os.path.join(dest_path, content)
         if os.path.isfile(content_path):
-            generate_page(content_path, template_path, public_path)
+            generate_page(content_path, template_path, public_path, basepath)
         elif os.path.isdir(content_path):
-            generate_pages(content_path, template_path, public_path)
+            generate_pages(content_path, template_path, public_path, basepath)
             
 
 def main():
-    copy_content("./static", "./public")
-    generate_pages("./content", "./template.html", "./public")
+    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
+    copy_content("./static", "./docs")
+    generate_pages("./content", "./template.html", "./docs", basepath)
     
 
 
