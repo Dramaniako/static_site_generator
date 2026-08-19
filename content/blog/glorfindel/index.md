@@ -34,6 +34,7 @@ Unlike Legolas, whose journey begins in the Third Age, Glorfindel's saga spans m
 print("Glorfindel")
 print("the")
 print("Balrog-Slayer")
+print("Balrog: Fucking knife ears")
 ```
 
 ## The Essence of Elven Might
